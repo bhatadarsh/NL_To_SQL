@@ -99,6 +99,24 @@ def validate_sql(sql: str, intent: dict) -> ValidationResult:
     if not re.search(r'\bFROM\b', sql_clean, re.IGNORECASE):
         errors.append("SQL does not contain a FROM clause.")
 
+     # --- Step 5: GROUP BY check ---                        ← PASTE HERE
+    select_match = re.search(r'SELECT\s+(.*?)\s+FROM', sql_clean, re.IGNORECASE | re.DOTALL)
+    if select_match:
+        select_part = select_match.group(1)
+        groupby_match = re.search(r'GROUP\s+BY\s+(.*?)(?:ORDER|LIMIT|$)', sql_clean, re.IGNORECASE | re.DOTALL)
+        if groupby_match:
+            groupby_cols = groupby_match.group(1).strip()
+            select_no_agg = re.sub(r'\b(COUNT|SUM|AVG|MAX|MIN)\s*\(.*?\)', '', select_part, flags=re.IGNORECASE)
+            select_cols = re.findall(r'\b([a-zA-Z_]+)\.([a-zA-Z_]+)\b', select_no_agg)
+            groupby_col_refs = re.findall(r'\b([a-zA-Z_]+)\.([a-zA-Z_]+)\b', groupby_cols)
+            groupby_plain = re.findall(r'\b([a-zA-Z_]+)\b', groupby_cols)
+            for tbl, col in select_cols:
+                in_groupby = (tbl, col) in groupby_col_refs or col in groupby_plain
+                if not in_groupby:
+                    errors.append(
+                        f"Column '{tbl}.{col}' in SELECT must appear in GROUP BY or be used in an aggregate function."
+                    )
+
     return ValidationResult(is_valid=len(errors) == 0, errors=errors)
 
 
