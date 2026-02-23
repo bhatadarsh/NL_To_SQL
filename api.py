@@ -86,13 +86,13 @@ def ask(request: QuestionRequest):
     )
 
 
-@app.post("/execute-sql")
-def execute_raw_sql(payload: dict):
-    """
-    Directly execute a raw SQL query on PostgreSQL.
-    Useful for testing.
-    """
-    sql = payload.get("sql", "").strip()
-    if not sql:
-        raise HTTPException(status_code=400, detail="SQL cannot be empty.")
-    return execute_query(sql)
+# @app.post("/execute-sql")
+# def execute_raw_sql(payload: dict):
+#     """
+#     Directly execute a raw SQL query on PostgreSQL.
+#     Useful for testing.
+#     """
+#     sql = payload.get("sql", "").strip()
+#     if not sql:
+#         raise HTTPException(status_code=400, detail="SQL cannot be empty.")
+#     return execute_query(sql)

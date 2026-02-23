@@ -90,4 +90,16 @@ You are a SQL query generator. Given the structured intent JSON and the database
 - Use table aliases where appropriate.
 - If the intent has joins, use them exactly as specified.
 - Return ONLY the SQL query. No explanation, no markdown, no code fences.
+
+=== STRICT SQL RULES ===
+- If using COUNT(*) or any aggregate function WITHOUT GROUP BY, do NOT select individual columns — only select the aggregate.
+- If you need BOTH individual columns AND a count, use GROUP BY on ALL non-aggregated columns.
+- NEVER mix individual columns and aggregate functions without a proper GROUP BY clause.
+- For questions like "show details with count", either:
+    Option A: SELECT all detail columns, GROUP BY all of them, COUNT(*)
+    Option B: Run two separate ideas as one — but in PostgreSQL use a subquery or window function
+- When asked for "details", prefer SELECT * or all columns WITHOUT aggregation unless count is specifically needed.
+- NEVER use LIKE on DATE columns. For year filtering use: EXTRACT(YEAR FROM column) = 2024
+- NEVER use LIKE on DATE columns. For month filtering use: EXTRACT(MONTH FROM column) = 1
+- NEVER cast dates as strings. Always use EXTRACT or DATE_PART for date comparisons.
 """
