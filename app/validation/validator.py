@@ -3,7 +3,7 @@ validator.py - Validates generated SQL against the schema using regex and Python
 NO LLM used here. Pure rule-based validation.
 """
 import re
-from app.schema import VALID_TABLES, VALID_COLUMNS
+from app.schemas.schema import VALID_TABLES, VALID_COLUMNS
 
 # SQL keywords and functions that look like table aliases but aren't
 SQL_KEYWORDS = {
@@ -22,7 +22,7 @@ class ValidationResult:
         self.errors = errors
 
     def __repr__(self):
-        status = "✅ VALID" if self.is_valid else "❌ INVALID"
+        status = " VALID" if self.is_valid else " INVALID"
         if self.errors:
             return f"{status}\nErrors:\n" + "\n".join(f"  - {e}" for e in self.errors)
         return status

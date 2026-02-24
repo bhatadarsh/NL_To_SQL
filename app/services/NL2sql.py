@@ -2,11 +2,11 @@
 nl2sql.py - Core pipeline: NL → Intent JSON → SQL → Validate → Return
 """
 import json
-from app.schema import TABLES, VALID_TABLES
-from app.prompts import build_schema_summary, INTENT_EXTRACTION_PROMPT, SQL_GENERATION_PROMPT
-from app.gemini_client import call_gemini, call_gemini_for_json
-from app.validator import validate_sql, build_retry_hint
-from app.config import MAX_RETRIES
+from app.schemas.schema import TABLES, VALID_TABLES
+from app.llm.prompts import build_schema_summary, INTENT_EXTRACTION_PROMPT, SQL_GENERATION_PROMPT
+from app.llm.gemini_client import call_gemini, call_gemini_for_json
+from app.validation.validator import validate_sql, build_retry_hint
+from app.configuration.config import MAX_RETRIES
 
 
 def extract_intent(question: str, schema_text: str) -> dict:
@@ -53,15 +53,15 @@ def process_question(question: str) -> dict:
 
     # --- Stage 1: Intent Extraction ---
     print(f"\n{'='*60}")
-    print(f"📝 Question: {question}")
+    print(f" Question: {question}")
     print(f"{'='*60}")
-    print("🔍 Stage 1: Extracting intent...")
+    print(" Stage 1: Extracting intent...")
 
     try:
         intent = extract_intent(question, schema_text)
     except Exception as e:
         result["message"] = f"Intent extraction failed: {e}"
-        print(f"❌ {result['message']}")
+        print(f" {result['message']}")
         return result
 
     result["intent"] = intent
@@ -76,11 +76,11 @@ def process_question(question: str) -> dict:
             f"Your question doesn't seem to be related to the available data. {reason} "
             f"Please ask questions about: {table_names}."
         )
-        print(f"⚠️  Irrelevant question: {result['message']}")
+        print(f"  Irrelevant question: {result['message']}")
         return result
 
     # --- Stage 2: SQL Generation with Retry Loop ---
-    print("\n⚙️  Stage 2: Generating SQL...")
+    print("\n Stage 2: Generating SQL...")
     retry_hint = ""
 
     for attempt in range(1, MAX_RETRIES + 1):
@@ -91,7 +91,7 @@ def process_question(question: str) -> dict:
             sql = generate_sql(question, intent, schema_text, retry_hint)
         except Exception as e:
             result["message"] = f"SQL generation failed: {e}"
-            print(f"❌ {result['message']}")
+            print(f" {result['message']}")
             return result
 
         result["sql"] = sql
@@ -106,15 +106,15 @@ def process_question(question: str) -> dict:
         if validation.is_valid:
             result["success"] = True
             result["message"] = "SQL generated and validated successfully."
-            print(f"   ✅ Validation passed on attempt {attempt}")
+            print(f"    Validation passed on attempt {attempt}")
             break
         else:
-            print(f"   ❌ Validation failed:")
+            print(f"    Validation failed:")
             for err in validation.errors:
                 print(f"      - {err}")
             retry_hint = build_retry_hint(validation, intent)
             if attempt == MAX_RETRIES:
                 result["message"] = f"SQL validation failed after {MAX_RETRIES} attempts."
-                print(f"   ⛔ Max retries reached.")
+                print(f"    Max retries reached.")
 
     return result
