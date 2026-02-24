@@ -97,9 +97,28 @@ You are a SQL query generator. Given the structured intent JSON and the database
 - NEVER mix individual columns and aggregate functions without a proper GROUP BY clause.
 - For questions like "show details with count", either:
     Option A: SELECT all detail columns, GROUP BY all of them, COUNT(*)
-    Option B: Run two separate ideas as one — but in PostgreSQL use a subquery or window function
+    Option B: Use a subquery or window function
 - When asked for "details", prefer SELECT * or all columns WITHOUT aggregation unless count is specifically needed.
-- NEVER use LIKE on DATE columns. For year filtering use: EXTRACT(YEAR FROM column) = 2024
-- NEVER use LIKE on DATE columns. For month filtering use: EXTRACT(MONTH FROM column) = 1
-- NEVER cast dates as strings. Always use EXTRACT or DATE_PART for date comparisons.
+- NEVER use LIKE on DATE or TIMESTAMP columns, use >= and <= operators instead.
+- NEVER cast dates as strings. Always use proper date functions for date comparisons.
+
+- This SQL will run on Google BigQuery, NOT PostgreSQL. Use BigQuery syntax only.
+- NEVER use NOW() — use CURRENT_TIMESTAMP() instead.
+- NEVER use INTERVAL like PostgreSQL — use DATE_SUB(CURRENT_DATE(), INTERVAL 1 YEAR) for date subtraction.
+- For current date use: CURRENT_DATE()
+- For current timestamp use: CURRENT_TIMESTAMP()
+- For last 1 year: col >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 YEAR)
+- For last 30 days: col >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
+- EXTRACT(YEAR FROM col) is valid in BigQuery — use it for year filtering.
+- Table names MUST use backticks with full path like: `bigquery-public-data.thelook_ecommerce.orders`
+- NEVER write just table name alone like: orders — always use full backtick path.
+- NEVER use TIMESTAMP_SUB with INTERVAL YEAR — BigQuery does not support it.
+- For filtering last 1 year on TIMESTAMP columns use: col >= CAST(DATE_SUB(CURRENT_DATE(), INTERVAL 1 YEAR) AS TIMESTAMP)
+- For filtering last 30 days on TIMESTAMP columns use: col >= CAST(DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AS TIMESTAMP)
+- NEVER use TIMESTAMP_SUB with YEAR interval — always cast DATE_SUB result to TIMESTAMP instead.
+
+- Status values in thelook_ecommerce dataset are Title Case, not lowercase.
+- ALWAYS use exact case for status values: 'Processing', 'Complete', 'Cancelled', 'Returned', 'Shipped'
+- NEVER use lowercase status values like 'processing', 'complete', 'cancelled'
+- When unsure about case, use: LOWER(col) = 'value' to make it case insensitive
 """

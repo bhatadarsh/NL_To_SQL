@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.services.NL2sql import process_question
 from app.execution.database import execute_query, test_connection
+from app.bigquery_client import execute_bigquery
 
 app = FastAPI(
     title="NL2SQL API",
@@ -70,9 +71,13 @@ def ask(request: QuestionRequest):
     # Step 2: If SQL is valid, execute it on PostgreSQL
     db_result = None
     if result["success"] and result["sql"]:
-        db_result = execute_query(result["sql"])
-        if not db_result["success"]:
-            result["message"] += f" | DB Error: {db_result['error']}"
+        sql = result["sql"]
+        for table in ["orders", "users", "products", "order_items"]:
+            sql = sql.replace(
+                f" {table} ",
+                f" `bigquery-public-data.thelook_ecommerce.{table}` "
+            )
+        db_result = execute_bigquery(sql)
 
     return NL2SQLResponse(
         question=result["question"],

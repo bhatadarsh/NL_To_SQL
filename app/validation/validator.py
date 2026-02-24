@@ -7,12 +7,32 @@ from app.schemas.schema import VALID_TABLES, VALID_COLUMNS
 
 # SQL keywords and functions that look like table aliases but aren't
 SQL_KEYWORDS = {
+    # Standard SQL functions
     'extract', 'year', 'month', 'day', 'hour', 'minute', 'second',
     'date_part', 'date_trunc', 'now', 'current_date', 'current_timestamp',
     'coalesce', 'nullif', 'cast', 'case', 'when', 'then', 'else', 'end',
     'count', 'sum', 'avg', 'max', 'min', 'upper', 'lower', 'trim',
     'substring', 'length', 'concat', 'round', 'floor', 'ceil',
-    'interval', 'timestamp', 'date', 'time', 'epoch', 'timezone'
+    'interval', 'timestamp', 'date', 'time', 'epoch', 'timezone',
+
+    # BigQuery specific functions
+    'date_sub', 'date_add', 'date_diff', 'date_trunc', 'datetime',
+    'datetime_sub', 'datetime_add', 'datetime_diff', 'datetime_trunc',
+    'timestamp_sub', 'timestamp_add', 'timestamp_diff', 'timestamp_trunc',
+    'format_date', 'format_datetime', 'format_timestamp',
+    'parse_date', 'parse_datetime', 'parse_timestamp',
+    'safe_cast', 'safe_divide', 'safe',
+    'array_agg', 'array_length', 'unnest', 'struct',
+    'string_agg', 'approx_count_distinct',
+    'if', 'ifnull', 'nullif',
+    'regexp_contains', 'regexp_extract', 'regexp_replace',
+    'starts_with', 'ends_with', 'contains_substr',
+    'split', 'trim', 'ltrim', 'rtrim',
+    'pow', 'power', 'sqrt', 'abs', 'mod',
+    'generate_uuid', 'farm_fingerprint',
+
+    # BigQuery project/dataset path parts that appear in backtick references
+    'bigquery', 'public', 'data', 'thelook_ecommerce',
 }
 
 
@@ -33,7 +53,11 @@ def _extract_tables_from_sql(sql: str):
     Extract table names and aliases from FROM and JOIN clauses.
     Returns (set of real table names, dict of alias -> real table name).
     """
-
+    sql = re.sub(
+            r'`[^`]*\.([a-zA-Z_][a-zA-Z0-9_]*)`',
+            r'\1',
+            sql
+    )
     sql_no_parens = re.sub(r'\([^)]*\)', ' ', sql)
     pattern = r'\b(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)(?:\s+(?:AS\s+)?([a-zA-Z_][a-zA-Z0-9_]*))?'
     matches = re.findall(pattern, sql_no_parens, re.IGNORECASE)
