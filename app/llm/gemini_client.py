@@ -3,7 +3,7 @@ gemini_client.py - Handles all communication with the Gemini API.
 """
 import json
 from groq import Groq 
-from app.config import GROQ_API_KEY, GROQ_MODEL
+from app.configuration.config import GROQ_API_KEY, GROQ_MODEL
 
 
 def call_gemini(prompt: str) -> str:

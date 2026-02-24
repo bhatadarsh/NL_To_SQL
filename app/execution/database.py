@@ -3,7 +3,7 @@ database.py - PostgreSQL connection and query execution.
 """
 import psycopg2
 import psycopg2.extras
-from app.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+from app.configuration.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
 
 def get_connection():

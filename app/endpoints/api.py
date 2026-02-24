@@ -4,8 +4,8 @@ api.py - FastAPI application exposing NL2SQL as a REST API.
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from app.NL2sql import process_question
-from app.database import execute_query, test_connection
+from app.services.NL2sql import process_question
+from app.execution.database import execute_query, test_connection
 
 app = FastAPI(
     title="NL2SQL API",
