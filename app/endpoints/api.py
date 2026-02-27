@@ -68,7 +68,6 @@ def ask(request: QuestionRequest):
     # Step 1: Generate and validate SQL
     result = process_question(request.question)
 
-    # Step 2: If SQL is valid, execute it on PostgreSQL
     db_result = None
     if result["success"] and result["sql"]:
         sql = result["sql"]
